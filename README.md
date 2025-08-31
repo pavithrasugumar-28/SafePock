@@ -56,7 +56,7 @@ git clone https://github.com/[your-username]/SafePock.git
 cd SafePock
 Create a cozy little virtual space for it:
 This keeps its dependencies separate from your other Python projects.
-
+Now save all the .html files under same folder named templates
 Bash
 
 # On macOS or Linux
