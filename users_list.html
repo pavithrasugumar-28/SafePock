@@ -1,0 +1,41 @@
+<!-- users_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-4">Users</h1>
+
+    <a href="{{ url_for('create_user') }}" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">+ New User</a>
+
+    <table class="w-full mt-4 border border-gray-300 rounded-xl overflow-hidden">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2 border text-left">Name</th>
+          <th class="p-2 border text-left">Blood Group</th>
+          <th class="p-2 border text-left">DOB</th>
+          <th class="p-2 border text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="p-2 border">{{ u.name }}</td>
+          <td class="p-2 border">{{ u.blood_group }}</td>
+          <td class="p-2 border">{{ u.dob }}</td>
+          <td class="p-2 border space-x-2">
+            <a class="text-blue-600 hover:underline" href="{{ url_for('view_user', user_id=u._id|string) }}">View</a>
+            <a class="text-green-600 hover:underline" href="{{ url_for('edit_user', user_id=u._id|string) }}">Edit</a>
+            <form id="delete-form-{{ u._id | string }}" action="{{ url_for('delete_user', user_id=u._id|string) }}" method="POST" class="inline-block">
+              <button type="button" class="text-red-600 hover:underline" onclick="showConfirmModal('delete-form-{{ u._id | string }}')">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="text-center p-4 text-gray-500">No users found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endblock %}

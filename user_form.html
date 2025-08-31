@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-4">{{ 'Edit User' if user else 'New User' }}</h1>
+
+    <form method="POST" class="grid grid-cols-2 gap-4">
+      <!-- Basic Info -->
+      <input type="text" name="name" placeholder="Full Name" value="{{ user.name if user else '' }}" class="border p-2 rounded col-span-2" required>
+      <input type="date" name="dob" value="{{ user.dob if user else '' }}" class="border p-2 rounded">
+      <input type="text" name="blood_group" placeholder="Blood Group" value="{{ user.blood_group if user else '' }}" class="border p-2 rounded">
+
+      <!-- Emergency Contact -->
+      <h2 class="col-span-2 font-semibold mt-4">Emergency Contact</h2>
+      <input type="text" name="emergency_name" placeholder="Name" value="{{ user.emergency.name if user else '' }}" class="border p-2 rounded">
+      <input type="text" name="emergency_phone" placeholder="Phone" value="{{ user.emergency.phone if user else '' }}" class="border p-2 rounded">
+      <input type="text" name="emergency_relationship" placeholder="Relationship" value="{{ user.emergency.relationship if user else '' }}" class="border p-2 rounded col-span-2">
+
+      <!-- Medical Info -->
+      <h2 class="col-span-2 font-semibold mt-4">Medical Information</h2>
+      <input type="text" name="allergies_csv" placeholder="Allergies (comma-separated)" value="{{ to_csv(user.allergies) if user else '' }}" class="border p-2 rounded col-span-2">
+      <input type="text" name="chronic_conditions_csv" placeholder="Chronic Conditions" value="{{ to_csv(user.chronic_conditions) if user else '' }}" class="border p-2 rounded col-span-2">
+      <input type="text" name="current_medications_csv" placeholder="Current Medications" value="{{ to_csv(user.current_medications) if user else '' }}" class="border p-2 rounded col-span-2">
+      <input type="text" name="implants_csv" placeholder="Implants" value="{{ to_csv(user.implants) if user else '' }}" class="border p-2 rounded col-span-2">
+
+      <label class="col-span-2">
+        <input type="checkbox" name="organ_donor" {% if user and user.organ_donor %}checked{% endif %}> Organ Donor
+      </label>
+
+      <!-- Doctor Info -->
+      <h2 class="col-span-2 font-semibold mt-4">Doctor</h2>
+      <input type="text" name="doctor_name" placeholder="Doctor's Name" value="{{ user.doctor.name if user else '' }}" class="border p-2 rounded">
+      <input type="text" name="doctor_phone" placeholder="Doctor's Phone" value="{{ user.doctor.phone if user else '' }}" class="border p-2 rounded">
+
+      <!-- Submit -->
+      <div class="col-span-2 mt-4">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          {{ 'Update' if user else 'Create' }}
+        </button>
+        <a href="{{ url_for('list_users') }}" class="ml-2 text-gray-600 hover:underline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

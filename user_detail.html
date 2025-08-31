@@ -1,0 +1,57 @@
+<!-- user_detail.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white shadow-lg rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-4">{{ user.name | default("Unknown") }}</h1>
+    
+    <!-- QR Code Section -->
+    <div class="flex justify-center mb-6 p-4 bg-gray-50 rounded-xl">
+        <!-- The QR code image now has a fixed size to control its width -->
+        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code for User Data" class="w-64 h-64 rounded-lg shadow-md" />
+    </div>
+
+    <p><strong>DOB:</strong> {{ user.dob | default("N/A") }}</p>
+    <p><strong>Blood Group:</strong> {{ user.blood_group | default("N/A") }}</p>
+
+    <h2 class="font-semibold mt-4">Emergency Contact</h2>
+    {% if user.emergency %}
+      <p>
+        {{ user.emergency.name | default("N/A") }}
+        ({{ user.emergency.relationship | default("N/A") }})
+        - {{ user.emergency.phone | default("N/A") }}
+      </p>
+    {% else %}
+      <p>N/A</p>
+    {% endif %}
+
+    <h2 class="font-semibold mt-4">Medical Information</h2>
+    <p><strong>Allergies:</strong> {{ to_csv(user.allergies | default([])) }}</p>
+    <p><strong>Chronic Conditions:</strong> {{ to_csv(user.chronic_conditions | default([])) }}</p>
+    <p><strong>Medications:</strong> {{ to_csv(user.current_medications | default([])) }}</p>
+    <p><strong>Implants:</strong> {{ to_csv(user.implants | default([])) }}</p>
+    <p><strong>Organ Donor:</strong> {{ "Yes" if user.organ_donor else "No" }}</p>
+
+    <h2 class="font-semibold mt-4">Doctor</h2>
+    {% if user.doctor %}
+      <p>
+        {{ user.doctor.name | default("N/A") }}
+        - {{ user.doctor.phone | default("N/A") }}
+      </p>
+    {% else %}
+      <p>N/A</p>
+    {% endif %}
+
+    <div class="mt-6 space-x-2">
+      <a href="{{ url_for('edit_user', user_id=user._id | string) }}"
+         class="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors">Edit</a>
+
+      <form id="delete-form-{{ user._id | string }}" action="{{ url_for('delete_user', user_id=user._id | string) }}" method="POST" style="display:inline;">
+        <button type="button" class="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors"
+                onclick="showConfirmModal('delete-form-{{ user._id | string }}')">Delete</button>
+      </form>
+
+      <a href="{{ url_for('list_users') }}" class="ml-2 text-gray-600 hover:underline">Back</a>
+    </div>
+</div>
+{% endblock %}

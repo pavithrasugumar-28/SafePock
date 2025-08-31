@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Information Hub</title>
+    <style>
+        /* General Styling */
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --light-gray: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --white: #fff;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Page containers */
+        .page {
+            display: none;
+            width: 100%;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* Main content container */
+        .container {
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 2rem;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .small-container {
+            max-width: 400px;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+        h3 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Header for user list */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--white);
+            transition: all 0.2s;
+            text-align: center;
+            display: inline-block;
+        }
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-secondary { background-color: var(--secondary-color); }
+        .btn-success { background-color: var(--success-color); }
+        .btn-danger { background-color: var(--danger-color); }
+        .action-buttons {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .action-buttons.center {
+            justify-content: center;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        thead {
+            background-color: var(--light-gray);
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        td .action-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-right: 1rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        td .action-link.delete {
+            color: var(--danger-color);
+        }
+
+        /* Forms */
+        .form-group, .form-check {
+            margin-bottom: 1rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .error-message {
+            color: var(--danger-color);
+            margin-top: 0.5rem;
+            min-height: 1rem;
+        }
+        .success-message {
+            color: var(--success-color);
+            margin-top: 0.5rem;
+            min-height: 1rem;
+        }
+
+        /* User Details View */
+        #user-details-content h2 { margin: 0 0 1rem 0; }
+        .detail-group {
+            margin-bottom: 1.5rem;
+        }
+        .detail-group strong {
+            display: block;
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.25rem;
+        }
+        .detail-item {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+        .detail-item .label {
+            font-weight: 600;
+            width: 150px;
+            color: #333;
+        }
+        .detail-item .value {
+            color: #666;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================= -->
+    <!-- ====         MAIN LANDING PAGE           ==== -->
+    <!-- ============================================= -->
+    <div id="landing-page" class="page active">
+        <div class="container small-container text-center">
+            <h1>Welcome</h1>
+            <p>Please choose your access level.</p>
+            <div class="action-buttons center">
+                <button id="show-quick-access-btn" class="btn btn-secondary">Quick Access</button>
+                <button id="show-login-form-btn" class="btn btn-primary">Detailed Info Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- ====        DETAILED LOGIN FORM          ==== -->
+    <!-- ============================================= -->
+    <div id="login-page" class="page">
+        <div class="container small-container">
+            <h1>Admin Login</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="password" required>
+                </div>
+                <p id="login-error" class="error-message"></p>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <button type="button" class="btn btn-secondary cancel-btn">Back</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- ====      QUICK ACCESS USER LIST         ==== -->
+    <!-- ============================================= -->
+    <div id="quick-access-page" class="page">
+        <div class="container">
+            <div class="header">
+                <h1>Quick Access Info</h1>
+                <button class="btn btn-secondary cancel-btn">Back to Home</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Blood Group</th>
+                        <th>Emergency Contact</th>
+                        <th>Emergency Phone</th>
+                    </tr>
+                </thead>
+                <tbody id="quick-access-table-body">
+                    <!-- JS will populate this -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- ====      DETAILED USER LIST (ADMIN)     ==== -->
+    <!-- ============================================= -->
+    <div id="user-list-page" class="page">
+        <div class="container">
+            <div class="header">
+                <h1>Users</h1>
+                <button id="add-new-user-btn" class="btn btn-primary">+ New User</button>
+            </div>
+            <p id="user-list-message" class="error-message"></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Blood Group</th>
+                        <th>DOB</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-list-table-body">
+                    <!-- JS will populate this with View/Edit/Delete buttons -->
+                </tbody>
+            </table>
+             <button class="btn btn-danger logout-btn">Logout</button>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- ====          NEW USER FORM PAGE         ==== -->
+    <!-- ============================================= -->
+    <div id="new-user-page" class="page">
+        <div class="container">
+            <h2>New User</h2>
+            <p id="new-user-message" class="error-message"></p>
+            <form id="new-user-form">
+                <!-- Basic Info -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="full-name">Full Name</label>
+                        <input type="text" id="full-name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blood-group">Blood Group</label>
+                        <input type="text" id="blood-group" placeholder="e.g., AB+" pattern="^(A|B|AB|O)[+-]$" title="Please enter a valid blood group (e.g., A+, B-, AB+, O-)" required>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <h3>Emergency Contact</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ec-name">Name</label>
+                        <input type="text" id="ec-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="ec-phone">Phone</label>
+                        <input type="tel" id="ec-phone" pattern="[0-9+\-\s\(\)]+" title="Please enter a valid phone number">
+                    </div>
+                </div>
+                 <div class="form-row">
+                    <div class="form-group">
+                        <label for="ec-relationship">Relationship</label>
+                        <input type="text" id="ec-relationship">
+                    </div>
+                </div>
+
+                <!-- Medical Info -->
+                <h3>Medical Information</h3>
+                <div class="form-group">
+                    <label for="allergies">Allergies (comma-separated)</label>
+                    <input type="text" id="allergies">
+                </div>
+                <div class="form-group">
+                    <label for="chronic-conditions">Chronic Conditions</label>
+                    <input type="text" id="chronic-conditions">
+                </div>
+                <div class="form-group">
+                    <label for="medications">Current Medications</label>
+                    <input type="text" id="medications">
+                </div>
+                <div class="form-group">
+                    <label for="implants">Implants</label>
+                    <input type="text" id="implants">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="organ-donor">
+                    <label for="organ-donor">Organ Donor</label>
+                </div>
+
+                <!-- Doctor Info -->
+                <h3>Doctor</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="doc-name">Doctor's Name</label>
+                        <input type="text" id="doc-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="doc-phone">Doctor's Phone</label>
+                        <input type="tel" id="doc-phone" pattern="[0-9+\-\s\(\)]+" title="Please enter a valid phone number">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add-user-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- ====         SINGLE USER VIEW PAGE       ==== -->
+    <!-- ============================================= -->
+    <div id="user-view-page" class="page">
+        <div class="container">
+            <div id="user-details-content">
+                <!-- JS will populate this -->
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-success" id="edit-user-btn">Edit</button>
+                <button class="btn btn-danger" id="delete-user-btn">Delete</button>
+                <button class="btn btn-secondary" id="back-to-list-btn">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- ====         EDIT USER MODAL             ==== -->
+    <!-- ============================================= -->
+    <div id="edit-user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit User</h2>
+            <p id="edit-user-message" class="error-message"></p>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+                <!-- Basic Info -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-full-name">Full Name</label>
+                        <input type="text" id="edit-full-name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-dob">Date of Birth</label>
+                        <input type="date" id="edit-dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-blood-group">Blood Group</label>
+                        <input type="text" id="edit-blood-group" pattern="^(A|B|AB|O)[+-]$" title="Please enter a valid blood group (e.g., A+, B-, AB+, O-)" required>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <h3>Emergency Contact</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-ec-name">Name</label>
+                        <input type="text" id="edit-ec-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ec-phone">Phone</label>
+                        <input type="tel" id="edit-ec-phone" pattern="[0-9+\-\s\(\)]+" title="Please enter a valid phone number">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-ec-relationship">Relationship</label>
+                        <input type="text" id="edit-ec-relationship">
+                    </div>
+                </div>
+
+                <!-- Medical Info -->
+                <h3>Medical Information</h3>
+                <div class="form-group">
+                    <label for="edit-allergies">Allergies (comma-separated)</label>
+                    <input type="text" id="edit-allergies">
+                </div>
+                <div class="form-group">
+                    <label for="edit-chronic-conditions">Chronic Conditions</label>
+                    <input type="text" id="edit-chronic-conditions">
+                </div>
+                <div class="form-group">
+                    <label for="edit-medications">Current Medications</label>
+                    <input type="text" id="edit-medications">
+                </div>
+                <div class="form-group">
+                    <label for="edit-implants">Implants</label>
+                    <input type="text" id="edit-implants">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="edit-organ-donor">
+                    <label for="edit-organ-donor">Organ Donor</label>
+                </div>
+
+                <!-- Doctor Info -->
+                <h3>Doctor</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-doc-name">Doctor's Name</label>
+                        <input type="text" id="edit-doc-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-doc-phone">Doctor's Phone</label>
+                        <input type="tel" id="edit-doc-phone" pattern="[0-9+\-\s\(\)]+" title="Please enter a valid phone number">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // =================================================================
+            // DUMMY DATA (In a real app, this would come from a server/database)
+            // =================================================================
+            let users = [
+                {
+                    id: 1,
+                    fullName: 'Nirainthan Ravi',
+                    dob: '2006-07-14',
+                    bloodGroup: 'AB+',
+                    emergencyContact: {
+                        name: 'N/A',
+                        phone: 'N/A',
+                        relationship: 'N/A'
+                    },
+                    medicalInfo: {
+                        allergies: 'None',
+                        chronicConditions: 'None',
+                        medications: 'None',
+                        implants: 'None',
+                        organDonor: false
+                    },
+                    doctor: {
+                        name: 'Dr. Lord Labaku Das',
+                        phone: '9876543210'
+                    }
+                },
+                {
+                    id: 2,
+                    fullName: 'Jane Doe',
+                    dob: '1995-05-20',
+                    bloodGroup: 'O-',
+                    emergencyContact: {
+                        name: 'John Doe',
+                        phone: '555-123-4567',
+                        relationship: 'Husband'
+                    },
+                    medicalInfo: {
+                        allergies: 'Peanuts',
+                        chronicConditions: 'Asthma',
+                        medications: 'Inhaler',
+                        implants: 'None',
+                        organDonor: true
+                    },
+                    doctor: {
+                        name: 'Dr. Emily Carter',
+                        phone: '555-987-6543'
+                    }
+                }
+            ];
+
+            let currentUserId = null;
+
+            // =================================================================
+            // UTILITY FUNCTIONS
+            // =================================================================
+            
+            function generateId() {
+                return Math.max(...users.map(u => u.id), 0) + 1;
+            }
+
+            function showMessage(elementId, message, isError = false) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = message;
+                    element.className = isError ? 'error-message' : 'success-message';
+                    setTimeout(() => {
+                        element.textContent = '';
+                        element.className = 'error-message';
+                    }, 3000);
+                }
+            }
+
+            // =================================================================
+            // PAGE NAVIGATION LOGIC
+            // =================================================================
+            const pages = document.querySelectorAll('.page');
+
+            function showPage(pageId) {
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                const newPage = document.getElementById(pageId);
+                if (newPage) {
+                    newPage.classList.add('active');
+                }
+            }
+
+            // Initial page show
+            showPage('landing-page');
+
+            // =================================================================
+            // MODAL FUNCTIONS
+            // =================================================================
+            
+            function showModal(modalId) {
+                document.getElementById(modalId).style.display = 'block';
+            }
+
+            function hideModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            // Close modal when clicking on X or outside
+            document.querySelectorAll('.close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', () => {
+                    hideModal('edit-user-modal');
+                });
+            });
+
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('edit-user-modal');
+                if (e.target === modal) {
+                    hideModal('edit-user-modal');
+                }
+            });
+
+            // =================================================================
+            // EVENT LISTENERS
+            // =================================================================
+
+            // --- Landing Page ---
+            document.getElementById('show-quick-access-btn').addEventListener('click', () => {
+                populateQuickAccessTable();
+                showPage('quick-access-page');
+            });
+
+            document.getElementById('show-login-form-btn').addEventListener('click', () => {
+                showPage('login-page');
+            });
+            
+            // --- Login Page ---
+            document.getElementById('login-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = document.getElementById('username').value;
+                const pass = document.getElementById('password').value;
+                const errorEl = document.getElementById('login-error');
+
+                // Simple validation (replace with real auth)
+                if (user === 'admin' && pass === 'password') {
+                    errorEl.textContent = '';
+                    populateUserListTable();
+                    showPage('user-list-page');
+                } else {
+                    errorEl.textContent = 'Invalid username or password.';
+                }
+            });
+
+            // --- Buttons to go back ---
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.addEventListener('click', () => showPage('landing-page'));
+            });
+            
+            document.getElementById('cancel-add-user-btn').addEventListener('click', () => showPage('user-list-page'));
+            document.getElementById('back-to-list-btn').addEventListener('click', () => showPage('user-list-page'));
+            document.getElementById('cancel-edit-btn').addEventListener('click', () => hideModal('edit-user-modal'));
+
+            // --- Logout ---
+            document.querySelectorAll('.logout-btn').forEach(btn => {
+                 btn.addEventListener('click', () => {
+                    document.getElementById('login-form').reset();
+                    showPage('landing-page');
+                });
+            });
+
+            // --- User List Page ---
+            document.getElementById('add-new-user-btn').addEventListener('click', () => {
+                document.getElementById('new-user-form').reset();
+                showPage('new-user-page');
+            });
+
+            // --- New User Form ---
+            document.getElementById('new-user-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const newUser = {
+                    id: generateId(),
+                    fullName: document.getElementById('full-name').value,
+                    dob: document.getElementById('dob').value,
+                    bloodGroup: document.getElementById('blood-group').value,
+                    emergencyContact: {
+                        name: document.getElementById('ec-name').value || 'N/A',
+                        phone: document.getElementById('ec-phone').value || 'N/A',
+                        relationship: document.getElementById('ec-relationship').value || 'N/A'
+                    },
+                    medicalInfo: {
+                        allergies: document.getElementById('allergies').value || 'None',
+                        chronicConditions: document.getElementById('chronic-conditions').value || 'None',
+                        medications: document.getElementById('medications').value || 'None',
+                        implants: document.getElementById('implants').value || 'None',
+                        organDonor: document.getElementById('organ-donor').checked
+                    },
+                    doctor: {
+                        name: document.getElementById('doc-name').value || 'N/A',
+                        phone: document.getElementById('doc-phone').value || 'N/A'
+                    }
+                };
+
+                if (confirm(`Create new user: ${newUser.fullName}?`)) {
+                    users.push(newUser);
+                    showPage('user-list-page');
+                    populateUserListTable();
+                    showMessage('new-user-message', 'User created successfully!', false);
+                }
+            });
+
+            // --- Edit User Button ---
+            document.getElementById('edit-user-btn').addEventListener('click', () => {
+                if (currentUserId) {
+                    openEditModal(currentUserId);
+                }
+            });
+
+            // --- Delete User Button ---
+            document.getElementById('delete-user-btn').addEventListener('click', () => {
+                if (currentUserId && confirm('Are you sure you want to delete this user?')) {
+                    deleteUser(currentUserId);
+                }
+            });
+
+            // --- Edit User Form ---
+            document.getElementById('edit-user-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const userId = parseInt(document.getElementById('edit-user-id').value);
+                const userIndex = users.findIndex(u => u.id === userId);
+                
+                if (userIndex !== -1) {
+                    users[userIndex] = {
+                        id: userId,
+                        fullName: document.getElementById('edit-full-name').value,
+                        dob: document.getElementById('edit-dob').value,
+                        bloodGroup: document.getElementById('edit-blood-group').value,
+                        emergencyContact: {
+                            name: document.getElementById('edit-ec-name').value || 'N/A',
+                            phone: document.getElementById('edit-ec-phone').value || 'N/A',
+                            relationship: document.getElementById('edit-ec-relationship').value || 'N/A'
+                        },
+                        medicalInfo: {
+                            allergies: document.getElementById('edit-allergies').value || 'None',
+                            chronicConditions: document.getElementById('edit-chronic-conditions').value || 'None',
+                            medications: document.getElementById('edit-medications').value || 'None',
+                            implants: document.getElementById('edit-implants').value || 'None',
+                            organDonor: document.getElementById('edit-organ-donor').checked
+                        },
+                        doctor: {
+                            name: document.getElementById('edit-doc-name').value || 'N/A',
+                            phone: document.getElementById('edit-doc-phone').value || 'N/A'
+                        }
+                    };
+
+                    if (confirm(`Update user: ${users[userIndex].fullName}?`)) {
+                        hideModal('edit-user-modal');
+                        populateUserListTable();
+                        displayUserDetails(userId);
+                        showMessage('edit-user-message', 'User updated successfully!', false);
+                    }
+                }
+            });
+
+            // =================================================================
+            // DYNAMIC CONTENT RENDERING
+            // =================================================================
+
+            function populateQuickAccessTable() {
+                const tableBody = document.getElementById('quick-access-table-body');
+                tableBody.innerHTML = ''; // Clear existing rows
+                users.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td>${user.fullName}</td>
+                            <td>${user.bloodGroup}</td>
+                            <td>${user.emergencyContact.name}</td>
+                            <td>${user.emergencyContact.phone}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+
+            function populateUserListTable() {
+                const tableBody = document.getElementById('user-list-table-body');
+                tableBody.innerHTML = ''; // Clear existing rows
+                users.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td>${user.fullName}</td>
+                            <td>${user.bloodGroup}</td>
+                            <td>${user.dob}</td>
+                            <td>
+                                <a href="#" class="action-link view-link" data-id="${user.id}">View</a>
+                                <a href="#" class="action-link edit-link" data-id="${user.id}">Edit</a>
+                                <a href="#" class="action-link delete delete-link" data-id="${user.id}">Delete</a>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+                
+                // Add event listeners for the new action links
+                tableBody.querySelectorAll('.view-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const userId = parseInt(e.target.dataset.id);
+                        displayUserDetails(userId);
+                    });
+                });
+                
+                tableBody.querySelectorAll('.edit-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const userId = parseInt(e.target.dataset.id);
+                        openEditModal(userId);
+                    });
+                });
+
+                tableBody.querySelectorAll('.delete-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const userId = parseInt(e.target.dataset.id);
+                        if (confirm('Are you sure you want to delete this user?')) {
+                            deleteUser(userId);
+                        }
+                    });
+                });
+            }
+
+            function displayUserDetails(userId) {
+                const user = users.find(u => u.id === userId);
+                if (!user) {
+                    alert('User not found!');
+                    showPage('user-list-page');
+                    return;
+                }
+
+                currentUserId = userId;
+
+                const contentEl = document.getElementById('user-details-content');
+                contentEl.innerHTML = `
+                    <h2>${user.fullName}</h2>
+                    <div class="detail-item"><span class="label">DOB:</span> <span class="value">${user.dob}</span></div>
+                    <div class="detail-item"><span class="label">Blood Group:</span> <span class="value">${user.bloodGroup}</span></div>
+                    
+                    <div class="detail-group">
+                        <strong>Emergency Contact</strong>
+                        <div class="detail-item"><span class="label">Name:</span> <span class="value">${user.emergencyContact.name}</span></div>
+                        <div class="detail-item"><span class="label">Phone:</span> <span class="value">${user.emergencyContact.phone}</span></div>
+                        <div class="detail-item"><span class="label">Relationship:</span> <span class="value">${user.emergencyContact.relationship}</span></div>
+                    </div>
+
+                    <div class="detail-group">
+                        <strong>Medical Information</strong>
+                        <div class="detail-item"><span class="label">Allergies:</span> <span class="value">${user.medicalInfo.allergies}</span></div>
+                        <div class="detail-item"><span class="label">Chronic Conditions:</span> <span class="value">${user.medicalInfo.chronicConditions}</span></div>
+                        <div class="detail-item"><span class="label">Medications:</span> <span class="value">${user.medicalInfo.medications}</span></div>
+                        <div class="detail-item"><span class="label">Implants:</span> <span class="value">${user.medicalInfo.implants}</span></div>
+                        <div class="detail-item"><span class="label">Organ Donor:</span> <span class="value">${user.medicalInfo.organDonor ? 'Yes' : 'No'}</span></div>
+                    </div>
+
+                    <div class="detail-group">
+                        <strong>Doctor</strong>
+                        <div class="detail-item"><span class="label">Name:</span> <span class="value">${user.doctor.name}</span></div>
+                        <div class="detail-item"><span class="label">Phone:</span> <span class="value">${user.doctor.phone}</span></div>
+                    </div>
+                `;
+                showPage('user-view-page');
+            }
+
+            function openEditModal(userId) {
+                const user = users.find(u => u.id === userId);
+                if (!user) {
+                    alert('User not found!');
+                    return;
+                }
+
+                // Populate the edit form
+                document.getElementById('edit-user-id').value = user.id;
+                document.getElementById('edit-full-name').value = user.fullName;
+                document.getElementById('edit-dob').value = user.dob;
+                document.getElementById('edit-blood-group').value = user.bloodGroup;
+                document.getElementById('edit-ec-name').value = user.emergencyContact.name === 'N/A' ? '' : user.emergencyContact.name;
+                document.getElementById('edit-ec-phone').value = user.emergencyContact.phone === 'N/A' ? '' : user.emergencyContact.phone;
+                document.getElementById('edit-ec-relationship').value = user.emergencyContact.relationship === 'N/A' ? '' : user.emergencyContact.relationship;
+                document.getElementById('edit-allergies').value = user.medicalInfo.allergies === 'None' ? '' : user.medicalInfo.allergies;
+                document.getElementById('edit-chronic-conditions').value = user.medicalInfo.chronicConditions === 'None' ? '' : user.medicalInfo.chronicConditions;
+                document.getElementById('edit-medications').value = user.medicalInfo.medications === 'None' ? '' : user.medicalInfo.medications;
+                document.getElementById('edit-implants').value = user.medicalInfo.implants === 'None' ? '' : user.medicalInfo.implants;
+                document.getElementById('edit-organ-donor').checked = user.medicalInfo.organDonor;
+                document.getElementById('edit-doc-name').value = user.doctor.name === 'N/A' ? '' : user.doctor.name;
+                document.getElementById('edit-doc-phone').value = user.doctor.phone === 'N/A' ? '' : user.doctor.phone;
+
+                showModal('edit-user-modal');
+            }
+
+            function deleteUser(userId) {
+                users = users.filter(u => u.id !== userId);
+                populateUserListTable();
+                showPage('user-list-page');
+                showMessage('user-list-message', 'User deleted successfully!', false);
+            }
+        });
+    </script>
+</body>
+</html>
